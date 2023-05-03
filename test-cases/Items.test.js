@@ -2,6 +2,10 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const expect = chai.expect;
 const app = require('../app');
+const httpStatus = require('http-status');
+// const itemsController = require('../controllers/itemsController');
+const {getItems} = require('../controllers/itemsController');
+
 
 chai.use(chaiHttp);
 chai.should();
@@ -16,111 +20,223 @@ after(() => {
 });
 
 
+
 describe('Items API', () => {
     let itemId;
+    
   
-    // Test the createItem API endpoint
-    describe('POST /api/items', () => {
-      it('should create a new item', async () => {
-        const newItem = {
-          name: 'New Item',
-          description: 'This is a new item',
-          price: 10.99
-        };
-  
-        const res = await chai.request(app)
-          .post('/api/items')
-          .send(newItem);
-  
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('id');
-        itemId = res.body.id;
-      });
-    });
-  
+   // Test the createItem API endpoint
+describe('POST /api/items', () => {
+  it('should create a new item', async () => {
+    const newItem = {
+      name: 'New Item',
+      category: 10,
+      price: 290
+    };
 
-    // Test the getItem API endpoint
-  describe('GET /api/items/:id', () => {
-    it('should get an item by id', (done) => {
-      // const newItem = { name: 'Test item', description: 'Test description' };
-      chai.request(app)
-        .post('/api/items/:id')
-        // .send(newItem)
-        .end((err, res) => {
-          const itemId = res.body.id;
-          chai.request(app)
-            .get(`/api/items/${itemId}`)
-            .end((err, res) => {
-              res.should.have.status(200);
-              res.body.should.be.a('object');
-              res.body.should.have.property('id').equal(itemId);
-              res.body.should.have.property('name').equal(newItem.name);
-              res.body.should.have.property('description').equal(newItem.description);
-              done();
-            });
-        });
-    });    
+    const res = await chai.request(app)
+      .post('/api/items')
+      .send(newItem);
+
+    res.should.have.status(httpStatus.CREATED);
+    res.body.should.be.a('object');
+    res.body.should.have.property('data');
+    res.body.data.should.be.a('object');
+    res.body.data.should.have.property('id');
+    res.body.data.should.have.property('name').eq(newItem.name);
+    res.body.data.should.have.property('category').eq(newItem.category);
+    res.body.data.should.have.property('price').eq(newItem.price);
   });
+});
+
+  
+// Test the getItemById API endpoint
+describe('GET /api/items/:id', () => {
+  it('should return an item by ID', async () => {
+    // Get the list of items from the JSON file
+    const { data: items } = getItems();
+
+    // Choose an item from the list
+    const item = items[0];
+
+    const res = await chai.request(app)
+      .get(`/api/items/${item.id}`);
+
+    res.should.have.status(httpStatus.OK);
+    res.body.should.be.a('object');
+    res.body.should.have.property('data');
+    res.body.data.should.be.a('object');
+    res.body.data.should.have.property('id').eq(item.id);
+    res.body.data.should.have.property('name').eq(item.name);
+    res.body.data.should.have.property('category').eq(item.category);
+    res.body.data.should.have.property('price').eq(item.price);
+  });
+
+  it('should return a 404 error if the item is not found', async () => {
+    // Choose an ID that does not exist in the list of items
+    const id = 9999;
+
+    const res = await chai.request(app)
+      .get(`/api/items/${id}`);
+
+    res.should.have.status(httpStatus.NOT_FOUND);
+    res.body.should.be.a('object');
+    res.body.should.have.property('message').eq(`Item with ID ${id} not found.`);
+  });
+});
+
 
 
 
   // Test the updateItem API endpoint
   describe('PUT /api/items/:id', () => {
-    it('should update an item by id', async () => {
+    it('should update an existing item', async () => {
+      const newItem = {
+        name: 'New Item',
+        category: 10,
+        price: 290
+      };
+  
+      // create a new item
+      const createRes = await chai.request(app)
+        .post('/api/items')
+        .send(newItem);
+      
+      const itemId = createRes.body.data.id;
+  
+      // update the item with new values
       const updatedItem = {
         name: 'Updated Item',
-        description: 'This is an updated item',
-        price: 20.99
+        category: 20,
+        price: 350
       };
-
-      const res = await chai.request(app)
+  
+      const updateRes = await chai.request(app)
         .put(`/api/items/${itemId}`)
         .send(updatedItem);
-
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('name').eq(updatedItem.name);
-      res.body.should.have.property('description').eq(updatedItem.description);
-      res.body.should.have.property('price').eq(updatedItem.price);
+  
+      updateRes.should.have.status(httpStatus.OK);
+      updateRes.body.should.be.a('object');
+      updateRes.body.should.have.property('data');
+      updateRes.body.data.should.be.a('object');
+      updateRes.body.data.should.have.property('id').eq(itemId);
+      updateRes.body.data.should.have.property('name').eq(updatedItem.name);
+      updateRes.body.data.should.have.property('category').eq(updatedItem.category);
+      updateRes.body.data.should.have.property('price').eq(updatedItem.price);
+    });
+  
+    it('should return an error if item not found', async () => {
+      const updatedItem = {
+        name: 'Updated Item',
+        category: 20,
+        price: 350
+      };
+  
+      const itemId = 9999; // non-existing item ID
+  
+      const updateRes = await chai.request(app)
+        .put(`/api/items/${itemId}`)
+        .send(updatedItem);
+  
+      updateRes.should.have.status(httpStatus.NOT_FOUND);
+      updateRes.body.should.be.a('object');
+      updateRes.body.should.have.property('status').eq(httpStatus.NOT_FOUND);
+      updateRes.body.should.have.property('data');
+      updateRes.body.data.should.be.a('object');
+      updateRes.body.data.should.be.empty;
+      updateRes.body.should.have.property('message').eq(`Item with ID ${itemId} not found`);
     });
   });
+  
 
 
-  // Test the deleteItem API endpoint
-  describe('DELETE /api/items/:id', () => {
-    it('should delete an item by id', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/items/${itemId}`);
 
-      res.should.have.status(200);
-    });
-  });
 
 
 
   // Test the getItems API endpoint with pagination, filtering, and sorting
   describe('GET /api/items', () => {
-    it('should get items with pagination, filtering, and sorting', async () => {
+    it('should retrieve a list of items', async () => {
+      const query = {
+        page: 2,
+        limit: 5,
+        sort: 'price',
+        name: 'apple',
+        category: 1
+      };
+  
       const res = await chai.request(app)
         .get('/api/items')
-        .query({
-          page: 2,
-          limit: 5,
-          name: 'item',
-          sort: 'price'
-        });
-
-      res.should.have.status(200);
+        .query(query);
+  
+      res.should.have.status(httpStatus.OK);
       res.body.should.be.a('object');
-      res.body.should.have.property('data').which.is.an('array');
-      res.body.should.have.property('total').which.is.a('number');
-      res.body.should.have.property('page').which.is.a('number');
-      res.body.should.have.property('limit').which.is.a('number');
-      res.body.data.length.should.be.eql(5);
+      res.body.should.have.property('data');
+      res.body.data.should.be.a('object');
+      res.body.data.should.have.property('page').eq(query.page);
+      res.body.data.should.have.property('limit').eq(query.limit);
+      res.body.data.should.have.property('totalItems').be.a('number');
+      res.body.data.should.have.property('totalFilteredItems').be.a('number');
+      res.body.data.should.have.property('items').be.a('array');
+      res.body.data.items.should.have.lengthOf(query.limit);
+      res.body.data.items[0].should.have.property('id').be.a('number');
+      res.body.data.items[0].should.have.property('name').be.a('string');
+      res.body.data.items[0].should.have.property('category').be.a('number');
+      res.body.data.items[0].should.have.property('price').be.a('number');
     });
   });
+  
 
+
+  // Test the deleteItem API endpoint
+  describe('DELETE /api/items/:id', () => {
+    it('should delete an existing item', async () => {
+      // Create a new item to be deleted
+      const newItem = {
+        name: 'New Item',
+        category: 10,
+        price: 290
+      };
+      const res1 = await chai.request(app)
+        .post('/api/items')
+        .send(newItem);
+      const newItemId = res1.body.data.id;
+  
+      // Delete the item
+      const res2 = await chai.request(app)
+        .delete(`/api/items/${newItemId}`);
+  
+      // Check that the response has the expected status code and message
+      res2.should.have.status(httpStatus.OK);
+      res2.body.should.be.a('object');
+      res2.body.should.have.property('status').eq(httpStatus.OK);
+      res2.body.should.have.property('data');
+      res2.body.data.should.be.a('object');
+      res2.body.data.should.be.empty;
+      res2.body.should.have.property('message').eq('Item deleted successfully.');
+  
+      // Check that the item has been deleted
+      const res3 = await chai.request(app)
+        .get('/api/items');
+      res3.body.data.items.should.not.deep.include(newItem);
+    });
+  
+    it('should return a 404 error for a non-existing item', async () => {
+      // Delete an item with an invalid ID
+      const res = await chai.request(app)
+        .delete('/api/items/invalid_id');
+  
+      // Check that the response has the expected status code and message
+      res.should.have.status(httpStatus.NOT_FOUND);
+      res.body.should.be.a('object');
+      res.body.should.have.property('status').eq(httpStatus.NOT_FOUND);
+      res.body.should.have.property('data');
+      res.body.data.should.be.a('object');
+      res.body.data.should.be.empty;
+      res.body.should.have.property('message').eq('Item with ID invalid_id not found');
+    });
+  });
+  
 
 })
 
@@ -136,114 +252,3 @@ describe('Items API', () => {
 
 
 
-
-// describe('Item API', () => {
-//   let itemId = '';
-
-//   // Test POST /items
-//   describe('POST /api/items', () => {
-//     it('should create a new item', (done) => {
-//       chai
-//         .request(app)
-//         .post('/api/items')
-//         .send({ name : 'product 1', category: '1' })
-//         .end((err, res) => {
-//           expect(res).to.have.status(200);
-//           expect(res.body.title).to.equal('product 1');
-//           expect(res.body.author).to.equal('1');
-//           itemId = res.body.id;
-//           done();
-//         });
-//     });
-//   });
-
-//   // Test GET /books/:id
-//   describe('GET /api/items/:id', () => {
-//     it('should get a item by ID', (done) => {
-//       chai
-//         .request(app)
-//         .get(`/api/items${itemId}`)
-//         .end((err, res) => {
-//           expect(res).to.have.status(200);
-//           expect(res.body.title).to.equal();
-//           expect(res.body.author).to.equal('Douglas Adams');
-//           expect(res.body.pages).to.equal(224);
-//           done();
-//         });
-//     });
-//     it('should return 404 for non-existing book ID', (done) => {
-//       chai
-//         .request(app)
-//         .get('/books/123')
-//         .end((err, res) => {
-//           expect(res).to.have.status(404);
-//           done();
-//         });
-//     });
-//   });
-
-//   // Test PUT /books/:id
-//   describe('PUT /books/:id', () => {
-//     it('should update a book by ID', (done) => {
-//       chai
-//         .request(app)
-//         .put(`/books/${bookId}`)
-//         .send({ title: 'The Restaurant at the End of the Universe', author: 'Douglas Adams', pages: 256 })
-//         .end((err, res) => {
-//           expect(res).to.have.status(200);
-//           expect(res.body.title).to.equal('The Restaurant at the End of the Universe');
-//           expect(res.body.author).to.equal('Douglas Adams');
-//           expect(res.body.pages).to.equal(256);
-//           done();
-//         });
-//     });
-//     it('should return 404 for non-existing book ID', (done) => {
-//       chai
-//         .request(app)
-//         .put('/books/123')
-//         .send({ title: 'The Restaurant at the End of the Universe', author: 'Douglas Adams', pages: 256 })
-//         .end((err, res) => {
-//           expect(res).to.have.status(404);
-//           done();
-//         });
-//     });
-//   });
-
-
-// ///Delete
-//   describe("DELETE /api/items/:id", () => {
-//     it("should delete an item given the id", (done) => {
-//       // Create an item to delete
-//       const newItem = { name: "Test Item", description: "This is a test item" };
-//       chai.request(server)
-//         .post("/api/items")
-//         .send(newItem)
-//         .end((err, res) => {
-//           // Get the id of the created item
-//           const idToDelete = res.body.id;
-          
-//           // Delete the item
-//           chai.request(server)
-//             .delete("/api/items/" + idToDelete)
-//             .end((err, res) => {
-//               res.should.have.status(200);
-//               res.body.should.be.a('object');
-//               res.body.should.have.property('message').eql('Item deleted successfully');
-//               done();
-//             });
-//         });
-//     });
-
-//     it("should return an error if the id does not exist", (done) => {
-//       chai.request(server)
-//         .delete("/api/items/123")
-//         .end((err, res) => {
-//           res.should.have.status(404);
-//           res.body.should.be.a('object');
-//           res.body.should.have.property('message').eql('Item not found');
-//           done();
-//         });
-//     });
-//   });
-
-// })

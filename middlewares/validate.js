@@ -9,11 +9,16 @@ const validate = (schema) => (req, res, next) => {
   const { value, error } = Joi.compile(validSchema)
     .prefs({ errors: { label: 'key' }, abortEarly: false })
     .validate(object);
-console.log("fdf")
   if (error) {
-    console.log("errror",error);
-    const errorMessage = error.details.map((details) => details.message).join(', ');
-    return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
+    const errorMessage = error.details.map((details) => {return {'key': details.context.key, 'message': details.message} });
+
+    res.status(httpStatus.BAD_REQUEST).json({
+      status: httpStatus.BAD_REQUEST,
+      data: {},
+      message:errorMessage
+    })
+
+    return res;
   }
   Object.assign(req, value);
   return next();

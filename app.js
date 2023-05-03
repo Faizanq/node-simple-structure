@@ -1,6 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const itemRoutes = require('./routes/itemRoutes');
 const cors = require("cors");
 
 
@@ -16,8 +15,6 @@ var corsOptions = {origin: "http://localhost:8080/"};
 app.use (cors(corsOptions));
 
 
-
-// app.use('/api/items', itemRoutes);
 
 app.use(routes);
 
