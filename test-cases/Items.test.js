@@ -4,7 +4,7 @@ const expect = chai.expect;
 const app = require('../app');
 const httpStatus = require('http-status');
 // const itemsController = require('../controllers/itemsController');
-const getItems = require('../controllers/helper');
+const getItems = require('../helper/helper-file');
 
 
 chai.use(chaiHttp);

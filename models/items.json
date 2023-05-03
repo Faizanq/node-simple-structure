@@ -58,5 +58,17 @@
     "category": 20,
     "price": 350,
     "id": 10
+  },
+  {
+    "name": "New Item",
+    "category": 10,
+    "price": 290,
+    "id": 11
+  },
+  {
+    "name": "Updated Item",
+    "category": 20,
+    "price": 350,
+    "id": 12
   }
 ]
