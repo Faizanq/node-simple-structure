@@ -1,0 +1,24 @@
+{
+  "name": "testcode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start":"nodemon app.js",
+    "test": "mocha test-cases/Items.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "http-status": "^1.6.2",
+    "joi": "^17.9.2",
+    "lodash": "^4.17.21",
+    "nodemon": "^2.0.22"
+  }
+}
