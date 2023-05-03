@@ -322,7 +322,6 @@ exports.deleteItem = (req, res) => {
   }
 };
 
-module.exports = {getItems};
 
 
 
