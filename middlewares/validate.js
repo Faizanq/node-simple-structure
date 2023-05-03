@@ -16,7 +16,6 @@ console.log("fdf")
     return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
   }
   Object.assign(req, value);
-  console.log("step2");
   return next();
 };
 

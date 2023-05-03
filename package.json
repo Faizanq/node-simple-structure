@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start":"nodemon app.js",
+    "start": "nodemon app.js",
     "test": "mocha test-cases/Items.test.js"
   },
   "author": "",
@@ -19,6 +19,7 @@
     "http-status": "^1.6.2",
     "joi": "^17.9.2",
     "lodash": "^4.17.21",
+    "mocha": "^10.2.0",
     "nodemon": "^2.0.22"
   }
 }

@@ -3,19 +3,60 @@ const fs = require('fs');
 const path = require('path');
 const ItemsFilePath = path.join(__dirname, '..', 'models', 'items.json');
 
+/**
+ * Retrieves the list of items from a JSON file located at the file path specified by `ItemsFilePath`.
+ * @returns {Object} A JSON object containing a status code, a data property, and a message property.
+ */
 function getItems() {
   try {
+    // Read the JSON file and return its contents as a string.
     const itemJson = fs.readFileSync(ItemsFilePath, 'utf8');
-    return JSON.parse(itemJson);
+    // Parse the JSON string and return the resulting JavaScript object.
+    return { 
+      status: 200,
+      data: JSON.parse(itemJson),
+      message: 'Items retrieved successfully from the JSON file.' 
+    };
   } catch (err) {
-    return [];
+    // If there was an error, return an error message in a JSON object.
+    return { 
+      status: 500,
+      data: [],
+      message: `Failed to retrieve items from the JSON file: ${err.message}` 
+    };
   }
 }
 
+
+/**
+ * Writes the list of items to a JSON file located at the file path specified by `ItemsFilePath`.
+ * @param {Array} items - An array of objects representing items to be saved.
+ * @returns {Object} A JSON object containing a status code, a data property, and a message property.
+ */
 function saveItems(items) {
-  const itemsJson = JSON.stringify(items, null, 2);
-  fs.writeFileSync(ItemsFilePath, itemsJson);
+  try {
+    // Convert the items array to a formatted JSON string.
+    const itemsJson = JSON.stringify(items, null, 2);
+
+    // Write the JSON string to the file at ItemsFilePath.
+    fs.writeFileSync(ItemsFilePath, itemsJson);
+
+    // If the write was successful, return a success message in a JSON object.
+    return { 
+      status: 200,
+      data: items,
+      message: 'Items saved successfully to the JSON file.' 
+    };
+  } catch (err) {
+    // If there was an error, return an error message in a JSON object.
+    return { 
+      status: 500,
+      data: null,
+      message: `Failed to save items to the JSON file: ${err.message}` 
+    };
+  }
 }
+
 
 
 
